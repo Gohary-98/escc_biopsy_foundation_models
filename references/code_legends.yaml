@@ -1,0 +1,168 @@
+# Meanings of the coded columns in the clinical workbooks.
+#
+# STATUS: most legends are UNCONFIRMED. The workbooks ship codes without a key,
+# so the meanings below are either read off the column header itself (where the
+# header embeds the legend, e.g. "Sex (1=male 2=female)") or inferred and marked
+# as such. Anything marked UNKNOWN must be confirmed with the data owner before
+# it is used as a categorical covariate.
+#
+# This file is machine-read: `ec_wsi_2026.clinical.audit` fails if a code value
+# appears in the data that is not enumerated here. That is deliberate -- a new
+# site or a new treatment protocol introducing an unseen code must not pass
+# unnoticed. When that happens, add the value here with `meaning: UNKNOWN` and
+# raise it with the data owner.
+#
+# `counts` records the values observed across the 209 patients
+# (definitive n=118, neoadjuvant n=91) and is documentation, not a constraint.
+
+sex:
+  source_header: "Sex (1=male 2=female)"
+  confirmed: true          # legend is embedded in the column header
+  values:
+    1: {meaning: male,   counts: {definitive: 84, neoadjuvant: 63}}
+    2: {meaning: female, counts: {definitive: 34, neoadjuvant: 28}}
+
+endo_availability:
+  source_header: "Endo (0=none 1=images 2=video+images)"
+  confirmed: true          # legend is embedded in the column header
+  values:
+    0: {meaning: no endoscopy media,      counts: {definitive: 47, neoadjuvant: 31}}
+    1: {meaning: still images only,       counts: {definitive: 36, neoadjuvant: 38}}
+    2: {meaning: video and still images,  counts: {definitive: 35, neoadjuvant: 22}}
+
+ct_post_crt_available:
+  source_header: "CT post CRT available (0=no 1=yes)"
+  confirmed: true          # legend is embedded in the column header
+  values:
+    0: {meaning: not available, counts: {definitive: 12, neoadjuvant: 8}}
+    1: {meaning: available,     counts: {definitive: 101, neoadjuvant: 74}}
+
+localisation:
+  source_header: "Localisation (code)"
+  confirmed: false
+  note: >-
+    Almost certainly the oesophageal third (upper/middle/lower), but the
+    direction is unverified. The cohorts differ sharply -- definitive is
+    weighted to code 1 (57/118) while neoadjuvant is weighted to codes 2 and 3
+    (80/91) -- which is consistent with 1=upper (more often treated definitively,
+    including cervical tumours) and 3=lower (more often resected, typically
+    adenocarcinoma). CONFIRM before using: if 1 is upper, this column is a
+    partial proxy for the histology that is missing from these files entirely.
+    One definitive patient has '1+3', handled as `localisation_multisite`.
+  values:
+    1: {meaning: UNKNOWN (suspected upper third),  counts: {definitive: 57, neoadjuvant: 11}}
+    2: {meaning: UNKNOWN (suspected middle third), counts: {definitive: 42, neoadjuvant: 43}}
+    3: {meaning: UNKNOWN (suspected lower third),  counts: {definitive: 19, neoadjuvant: 37}}
+
+cht_regimen:
+  source_header: "CHT regimen (code)"
+  confirmed: false
+  note: >-
+    Codes 3 and 4 never appear while code 5 is the second most common value
+    (49 definitive, 31 neoadjuvant). That pattern says the legend is
+    non-contiguous, and most likely 5 means "other, see CHT other" -- the free
+    text column is populated for 48 definitive and 32 neoadjuvant patients, which
+    is close to the code-5 counts. Reverse-engineering candidates from that text:
+    Cisplatin + 5-FU, Carboplatin + 5-FU, Oxaliplatin + 5-FU, Carboplatin mono,
+    Cisplatin mono, 5-FU + MMC, Mitomycin-C, Vinorelbin + Carboplatin.
+    CONFIRM the full legend before treating this as a categorical covariate.
+  values:
+    0: {meaning: UNKNOWN (possibly none),           counts: {definitive: 4, neoadjuvant: 1}}
+    1: {meaning: UNKNOWN (most common regimen),     counts: {definitive: 64, neoadjuvant: 59}}
+    2: {meaning: UNKNOWN,                           counts: {definitive: 1, neoadjuvant: 0}}
+    5: {meaning: UNKNOWN (suspected "other"),       counts: {definitive: 49, neoadjuvant: 31}}
+
+radiation_technique:
+  source_header: "Radiation technique (code)"
+  confirmed: false
+  note: >-
+    Three values with a dominant first category. Plausibly IMRT/VMAT vs 3D-CRT vs
+    something else, but the ordering is unverified. CONFIRM.
+  values:
+    1: {meaning: UNKNOWN (dominant technique), counts: {definitive: 94, neoadjuvant: 73}}
+    2: {meaning: UNKNOWN,                      counts: {definitive: 20, neoadjuvant: 14}}
+    3: {meaning: UNKNOWN,                      counts: {definitive: 2, neoadjuvant: 3}}
+
+additional_neoadj_cht:
+  source_header: "Additional neoadjuvant CHT (code)"
+  confirmed: false
+  note: Effectively binary (no/yes); 4 definitive patients only. CONFIRM.
+  values:
+    0: {meaning: UNKNOWN (none), counts: {definitive: 112, neoadjuvant: 89}}
+    1: {meaning: UNKNOWN (given), counts: {definitive: 4, neoadjuvant: 0}}
+
+adj_systemic_therapy:
+  source_header: "Adj systemic therapy (code)"
+  confirmed: false
+  note: >-
+    Codes 1 and 2 are rare (3+1 definitive, 2+9 neoadjuvant). Code 2 is
+    disproportionately neoadjuvant, consistent with adjuvant immunotherapy
+    (e.g. nivolumab after incomplete response), which entered practice mid-cohort.
+    One neoadjuvant cell holds '?', which coerces to null and is logged. CONFIRM.
+  values:
+    0: {meaning: UNKNOWN (none),  counts: {definitive: 112, neoadjuvant: 76}}
+    1: {meaning: UNKNOWN,         counts: {definitive: 3, neoadjuvant: 2}}
+    2: {meaning: UNKNOWN,         counts: {definitive: 1, neoadjuvant: 9}}
+
+pcr:
+  source_header: "pCR (code)"
+  confirmed: true
+  note: >-
+    Verified against ypT/ypN across all 91 neoadjuvant patients: pCR=1 holds
+    exactly when ypT=0 and ypN=0, with no exceptions in either direction. The
+    identity is asserted in `endpoints.validate`.
+  values:
+    0: {meaning: residual tumour,               counts: {neoadjuvant: 61}}
+    1: {meaning: pathological complete response, counts: {neoadjuvant: 30}}
+
+mandard:
+  source_header: "Tumorregression Mandard (code)"
+  confirmed: true
+  note: >-
+    Standard Mandard TRG, 1 (complete regression) to 5 (no regression). Only 23
+    of 91 neoadjuvant patients are graded; the remaining 66 hold the literal
+    string 'NA'. TOO SPARSE TO MODEL -- use `becker_grade` (74/91) instead.
+  values:
+    1: {meaning: TRG1 complete regression,      counts: {neoadjuvant: 10}}
+    2: {meaning: TRG2 rare residual cells,      counts: {neoadjuvant: 8}}
+    3: {meaning: TRG3 fibrosis outweighs tumour, counts: {neoadjuvant: 1}}
+    4: {meaning: TRG4 tumour outweighs fibrosis, counts: {neoadjuvant: 4}}
+    5: {meaning: TRG5 no regression,            counts: {neoadjuvant: 0}}
+
+local_failure:
+  source_header: "Local failure (code)"
+  confirmed: true
+  note: >-
+    Definitive cohort only; entirely empty for neoadjuvant. All 28 local failures
+    are a subset of the 56 progressions, as expected.
+  values:
+    0: {meaning: no local failure, counts: {definitive: 90}}
+    1: {meaning: local failure,    counts: {definitive: 28}}
+
+progress:
+  source_header: "Progress (code)"
+  confirmed: true
+  values:
+    0: {meaning: no progression, counts: {definitive: 62, neoadjuvant: 61}}
+    1: {meaning: progression,    counts: {definitive: 56, neoadjuvant: 30}}
+
+death:
+  source_header: "Death (code)"
+  confirmed: true
+  note: One definitive patient has a blank death code and is excluded from OS.
+  values:
+    0: {meaning: alive at last follow-up, counts: {definitive: 58, neoadjuvant: 57}}
+    1: {meaning: dead,                    counts: {definitive: 59, neoadjuvant: 34}}
+
+reason_of_death:
+  source_header: "Reason of death (code)"
+  confirmed: true
+  note: >-
+    Recorded for 90 of the 93 deaths. Legend confirmed by the data owner
+    2026-09-16. Code 2 ("other reasons") pools treatment-related deaths
+    (6 of the 8 deaths within 90 days of oesophagectomy carry it) with
+    comorbidity deaths; it is not a pure non-treatment category.
+  values:
+    1: {meaning: oesophageal cancer, counts: {definitive: 33, neoadjuvant: 14}}
+    2: {meaning: other reasons,      counts: {definitive: 23, neoadjuvant: 15}}
+    3: {meaning: unknown,            counts: {definitive: 1, neoadjuvant: 4}}

@@ -1,0 +1,45 @@
+# Pre-specified clinical covariate sets (the clinical model and the clinical
+# block of every fusion model).
+#
+# This file is the specification; `ec_wsi_2026/modeling/covariates.py` loads it
+# and `validate_spec` refuses a set that (a) references a column absent from
+# clinical.parquet, (b) uses a column whose code legend is unconfirmed
+# (audit.unconfirmed_legends), or (c) exceeds the events-per-variable budget
+# (n_events // 10).
+#
+# Encoding decisions (implemented in covariates.design_matrix):
+#   - Clinical T stage and histologic grade enter as numeric ordinals, not
+#     one-hot: at these event budgets the ordering information is worth
+#     keeping and the design matrix must stay narrow.
+#   - `cn_involved` (nodal involvement, derived in clinical/loading.py) is
+#     `cn_stage_num > 0`, with patients recorded only as node-positive ('+')
+#     counted as involved.
+#   - `cohort` is the treatment arm, encoded definitive=0 / neoadjuvant=1.
+#   - `institution` is deliberately NOT a covariate.
+#   - Missing values are imputed with the training-fold median inside each fold.
+
+version: 1
+
+sets:
+  pfs:
+    model: cox
+    role: primary
+    covariates:
+      - age_at_crt
+      - sex
+      - cohort
+      - ct_stage_num
+      - cn_involved
+      - histologic_grade_num
+      - tumor_length_cm
+  os:
+    model: cox
+    role: secondary
+    covariates:
+      - age_at_crt
+      - sex
+      - cohort
+      - ct_stage_num
+      - cn_involved
+      - histologic_grade_num
+      - tumor_length_cm

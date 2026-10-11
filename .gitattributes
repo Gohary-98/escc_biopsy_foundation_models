@@ -1,0 +1,13 @@
+# Normalise line endings in the index so Windows and Linux checkouts agree.
+* text=auto eol=lf
+
+# Binary / generated artifacts that must never be line-ending converted.
+*.xlsx binary
+*.parquet binary
+*.h5 binary
+*.hdf5 binary
+*.png binary
+*.svs binary
+*.ndpi binary
+*.tif binary
+*.tiff binary

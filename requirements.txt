@@ -1,0 +1,17 @@
+# Exact versions the paper's numbers were reproduced with (Python 3.10.20).
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+scikit-learn==1.7.2
+scikit-survival==0.25.0
+lifelines==0.30.0
+matplotlib==3.10.9
+pyarrow==25.0.1
+h5py==3.16.0
+loguru==0.7.3
+typer==0.27.1
+pyyaml==6.0.3
+openpyxl==3.1.5
+python-dotenv==1.2.2
+tqdm==4.70.0
+tabulate==0.10.0

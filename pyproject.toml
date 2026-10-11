@@ -1,0 +1,73 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "ec_wsi_2026"
+version = "0.0.1"
+description = "Pathology foundation-model embeddings of the pretreatment biopsy for survival prediction in ESCC treated with chemoradiotherapy"
+authors = [
+  { name = "Ahmed Mohamed" },
+]
+
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "h5py",
+    "loguru",
+    "numpy",
+    "openpyxl",
+    "pandas",
+    "pip",
+    "pyarrow",
+    "python-dotenv",
+    "pyyaml",
+    "tqdm",
+    "typer",
+]
+requires-python = "~=3.10.0"
+
+[project.optional-dependencies]
+# Statistics, survival models and plotting.
+analysis = [
+    "lifelines",
+    "matplotlib",
+    "scikit-learn",
+    "scikit-survival",  # time-dependent AUC (imported lazily)
+    "scipy",
+    "tabulate",  # pandas.DataFrame.to_markdown in the curation reports
+]
+# Whole-slide image metadata for the slide manifest. `openslide-bin` ships the
+# native OpenSlide library as a wheel. Do NOT substitute tiffslide: the
+# Hamamatsu .ndpi files store one strip per pyramid level.
+wsi = [
+    "openslide-bin",
+    "openslide-python>=1.4.0",
+]
+dev = ["pytest", "ruff"]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 99
+src = ["ec_wsi_2026"]
+include = ["pyproject.toml", "ec_wsi_2026/**/*.py", "tests/**/*.py", "paper/**/*.py", "scripts/**/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["I"]  # Add import sorting
+
+[tool.ruff.lint.flake8-bugbear]
+# `typer.Option(...)` / `typer.Argument(...)` in a parameter default is how Typer
+# declares CLI options -- it is the documented API, not an accidental mutable
+# default. Working around B008 would mean moving every default into the function
+# body and losing the generated --help text.
+extend-immutable-calls = ["typer.Option", "typer.Argument"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ec_wsi_2026"]
+force-sort-within-sections = true
+
